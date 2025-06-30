@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -21,27 +21,19 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        System.out.println("Trying to load user: " + username);
-        try {
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-            System.out.println("User found: " + user.getUsername());
-            return new org.springframework.security.core.userdetails.User(
-                    user.getUsername(),
-                    user.getPasswordHash(),
-                    mapRolesToAuthorities(user.getRoles())
-            );
-        } catch (Exception e) {
-            System.out.println("Error loading user: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
-        }
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPasswordHash(),
+                toAuthorities(user.getRoles())
+        );
     }
 
-    private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<String> roles) {
+    private static List<GrantedAuthority> toAuthorities(Collection<String> roles) {
         return roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                .collect(Collectors.toList());
+                .<GrantedAuthority>map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .toList();
     }
 }
