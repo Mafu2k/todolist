@@ -1,68 +1,36 @@
 # TodoList
 
-Aplikacja webowa do zarządzania zadaniami z rejestracją i logowaniem użytkowników.
-Każdy zalogowany użytkownik ma własną, prywatną listę zadań. Backend zbudowany
-w Spring Boot z uwierzytelnianiem opartym o Spring Security, widoki renderowane
-po stronie serwera w Thymeleaf.
-
-## Funkcjonalności
-
-- Rejestracja i logowanie użytkownika (Spring Security, sesje)
-- Zadania przypisane do konkretnego użytkownika — każdy widzi tylko swoje
-- Dodawanie, edycja i usuwanie zadań
-- Oznaczanie zadania jako wykonane / do zrobienia (toggle)
-- Walidacja formularzy
-- Widoki serwerowe (Thymeleaf) z integracją zabezpieczeń
-
-## Stack
-
-- Java + Spring Boot
-- Spring Security (uwierzytelnianie i autoryzacja)
-- Spring Data JPA + baza H2 (in-memory)
-- Thymeleaf (+ `thymeleaf-extras-springsecurity6`)
-- Bean Validation
-- Maven
-
-## Struktura projektu
-
-```
-src/main/java/org/example/todolist/
-├── TodolistApplication.java
-├── SecurityConfig.java             # konfiguracja Spring Security
-├── AuthController.java             # rejestracja / logowanie
-├── TaskController.java             # CRUD zadań
-├── Task.java, User.java            # encje JPA
-├── TaskRepository.java, UserRepository.java
-├── UserService.java                # rejestracja i logika użytkowników
-└── CustomUserDetailsService.java   # ładowanie użytkownika dla Security
-```
-
-## Główne trasy
-
-| Metoda | Ścieżka             | Opis                          |
-|--------|---------------------|-------------------------------|
-| GET    | `/login`            | formularz logowania           |
-| GET/POST | `/register`       | rejestracja użytkownika       |
-| GET    | `/tasks`            | lista zadań użytkownika       |
-| GET    | `/tasks/new`        | formularz nowego zadania      |
-| POST   | `/tasks/{id}`       | zapis / aktualizacja zadania  |
-| POST   | `/tasks/{id}/toggle`| zmiana statusu wykonania      |
-| POST   | `/tasks/{id}/delete`| usunięcie zadania             |
+Jedna z moich pierwszych aplikacji w Spring Boocie: lista zadań z kontami użytkowników.
+Każdy widzi tylko swoje zadania i może je dodawać, edytować, odhaczać oraz usuwać. Widoki są
+renderowane po stronie serwera w Thymeleaf, a logowanie obsługuje Spring Security z sesjami
+i hasłami w BCrypt.
 
 ## Uruchomienie
 
-Wymagania: Java 17+ oraz Maven (lub dołączony `mvnw`).
+Wystarczy Java 17+. Maven przyjdzie z wrappera.
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Aplikacja dostępna pod `http://localhost:8080` — zacznij od rejestracji konta.
+Aplikacja wstaje na http://localhost:8080. Przy starcie tworzą się dwa konta demo:
+`admin` / `admin` i `user` / `user`. Można też od razu założyć własne konto.
 
-## Autor
+Dane trafiają do plikowej bazy H2 w katalogu `data/`, więc przetrwają restart. Podgląd bazy
+jest pod `/h2-console` (JDBC URL `jdbc:h2:file:./data/todolist`, użytkownik `sa`, bez hasła).
 
-Łukasz Janicki
+## Trasy
+
+| Metoda | Ścieżka | Co robi |
+|--------|---------|---------|
+| GET/POST | `/register` | rejestracja |
+| GET | `/login` | logowanie |
+| GET | `/tasks` | lista zadań zalogowanego użytkownika |
+| GET | `/tasks/new` | formularz nowego zadania |
+| POST | `/tasks/{id}` | zapis zadania |
+| POST | `/tasks/{id}/toggle` | zmiana statusu |
+| POST | `/tasks/{id}/delete` | usunięcie |
 
 ## Licencja
 
-MIT — szczegóły w pliku [LICENSE](LICENSE).
+MIT

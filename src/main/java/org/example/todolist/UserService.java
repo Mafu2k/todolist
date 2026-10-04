@@ -1,15 +1,17 @@
 package org.example.todolist;
 
-import org.example.todolist.User;
-import org.example.todolist.UserRepository;
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import jakarta.annotation.PostConstruct;
 
 import java.util.Set;
 
 @Service
 public class UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -19,52 +21,37 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /** Konta demo, żeby po pierwszym uruchomieniu dało się od razu zalogować. */
     @PostConstruct
-    public void initializeTestUser() {
-        System.out.println("Initializing test users...");
-        try {
-            // Tworzymy testowego użytkownika jeśli nie istnieje
-            if (userRepository.findByUsername("admin").isEmpty()) {
-                User testUser = new User();
-                testUser.setUsername("admin");
-                testUser.setPasswordHash(passwordEncoder.encode("admin"));
-                testUser.setRoles(Set.of("USER", "ADMIN"));
-                userRepository.save(testUser);
-                System.out.println("Created admin user");
-            } else {
-                System.out.println("Admin user already exists");
-            }
-            
-            if (userRepository.findByUsername("user").isEmpty()) {
-                User testUser = new User();
-                testUser.setUsername("user");
-                testUser.setPasswordHash(passwordEncoder.encode("user"));
-                testUser.setRoles(Set.of("USER"));
-                userRepository.save(testUser);
-                System.out.println("Created user user");
-            } else {
-                System.out.println("User user already exists");
-            }
-        } catch (Exception e) {
-            System.out.println("Error initializing users: " + e.getMessage());
-            e.printStackTrace();
-        }
+    void createDemoUsers() {
+        createIfMissing("admin", "admin", Set.of("USER", "ADMIN"));
+        createIfMissing("user", "user", Set.of("USER"));
     }
 
     public boolean userExists(String username) {
         return userRepository.findByUsername(username).isPresent();
     }
-    
+
     public void register(String username, String rawPassword) {
         if (userExists(username)) {
-            throw new RuntimeException("Użytkownik o tej nazwie już istnieje");
+            throw new IllegalArgumentException("Użytkownik o tej nazwie już istnieje");
         }
-        
+        save(username, rawPassword, Set.of("USER"));
+        log.info("Registered user {}", username);
+    }
+
+    private void createIfMissing(String username, String rawPassword, Set<String> roles) {
+        if (!userExists(username)) {
+            save(username, rawPassword, roles);
+            log.info("Created demo user {}", username);
+        }
+    }
+
+    private void save(String username, String rawPassword, Set<String> roles) {
         User user = new User();
         user.setUsername(username);
         user.setPasswordHash(passwordEncoder.encode(rawPassword));
-        user.setRoles(Set.of("USER"));
+        user.setRoles(roles);
         userRepository.save(user);
-        System.out.println("Successfully registered user: " + username);
     }
 }
